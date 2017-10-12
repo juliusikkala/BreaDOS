@@ -1,0 +1,7 @@
+cross/*
+!cross/setup.sh
+*.swp
+*.swo
+*.elf
+*.o
+build
