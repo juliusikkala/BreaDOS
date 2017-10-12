@@ -1,0 +1,23 @@
+[binaries]
+c = '$PREFIX/bin/i686-elf-gcc'
+as = '$PREFIX/bin/i686-elf-as'
+ar = '$PREFIX/bin/i686-elf-ar'
+strip = '$PREFIX/bin/i686-elf-strip'
+
+[properties]
+sizeof_int = 4
+sizeof_wchar_t = 4
+sizeof_void* = 4
+
+aligment_char = 1
+aligment_void* = 4
+aligment_double = 4
+
+has_function_printf = false
+
+[host_machine]
+system = 'breados'
+cpu_family = 'x86'
+cpu = 'i686'
+endian = 'little'
+

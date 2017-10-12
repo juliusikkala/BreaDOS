@@ -1,7 +1,9 @@
 cross/*
 !cross/setup.sh
+!cross/cross_file.template
 *.swp
 *.swo
 *.elf
 *.o
 build
+cross_file.txt
