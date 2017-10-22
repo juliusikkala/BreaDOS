@@ -7,7 +7,7 @@ project(
   ]
 )
 
-run_command('cross/setup.sh')
+run_command('tools/setup.sh')
 
 if meson.is_cross_build() == false
   error('The kernel must be built with cross build enabled. Use --cross-file cross_file.txt. Did you run setup.sh?')
@@ -15,7 +15,7 @@ endif
 
 #FIXME: Workaround, when meson 0.43.0 lands find_program should be able to use
 #cross_file.txt to find the right program.
-as = find_program('cross/bin/i686-elf-as')
+as = find_program('tools/bin/i686-elf-as')
 
 bootstrap = custom_target('bootstrap',
   output: 'bootstrap.o',

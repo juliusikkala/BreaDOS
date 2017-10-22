@@ -1,6 +1,6 @@
-cross/*
-!cross/setup.sh
-!cross/cross_file.template
+tools/*
+!tools/setup.sh
+!tools/cross_file.template
 *.swp
 *.swo
 *.elf

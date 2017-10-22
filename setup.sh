@@ -14,6 +14,6 @@ function require_programs {
 }
 require_programs wget make gcc as ar objcopy ld strip meson
 
-cross/setup.sh
+tools/setup.sh
 rm -rf build
 meson build --cross-file cross_file.txt
