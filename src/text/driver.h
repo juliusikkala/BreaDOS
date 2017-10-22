@@ -1,6 +1,6 @@
 #ifndef BREADOS_TEXT_DRIVER_H
 #define BREADOS_TEXT_DRIVER_H
-#include "../types.h"
+#include "types.h"
 
 struct text_device;
 

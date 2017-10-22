@@ -1,6 +1,7 @@
 #include "driver.h"
-#include "../device.h"
+#include "text/device.h"
 #include "io.h"
+#include "memory.h"
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
 
@@ -41,7 +42,7 @@ static inline uint16_t vga_char(unsigned char c, uint8_t color)
     return c | ((uint16_t)color << 8);
 }
 
-static inline void vga_enable_color(struct text_vga_data* data)
+static inline void vga_enable_color()
 {
     outb(0x3C2, inb(0x3CC)|1);
     io_pause();
@@ -106,7 +107,7 @@ static inline void vga_clear(struct text_vga_data* data)
 static inline void vga_reset(struct text_vga_data* data)
 {
     data->color = combine_vga_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK);
-    vga_enable_color(data);
+    vga_enable_color();
     vga_enable_cursor(data);
     vga_clear(data);
 }
@@ -150,7 +151,7 @@ static inline void vga_write_char(struct text_vga_data* data, char c)
     default:
         data->buffer[data->y * VGA_WIDTH + data->x] = vga_char(c, data->color);
         data->x++;
-        if(data->x == VGA_WIDTH) vga_newline();
+        if(data->x == VGA_WIDTH) vga_newline(data);
         break;
     };
 }
@@ -182,6 +183,9 @@ static inline enum vga_color rgb8_to_vga(uint32_t rgb8)
     if(r == 3 && g == 1 && b == 3) return VGA_COLOR_LIGHT_MAGENTA;
     if(r == 3 && g == 3 && b == 1) return VGA_COLOR_YELLOW;
     if(r == 3 && g == 3 && b == 3) return VGA_COLOR_WHITE;
+
+    /* Cannot be reached */
+    return VGA_COLOR_WHITE;
 }
 
 void text_vga_init(
@@ -229,11 +233,8 @@ void text_vga_puts(
     struct text_device* device,
     const char* str
 ){
-    while(*str)
-    {
-        text_vga_putc(device, *str);
-        str++;
-    }
+    struct text_vga_data* data = (struct text_vga_data*) device->driver_data;
+    while(*str) vga_write_char(data, *str++);
     vga_update_cursor(data);
 }
 
@@ -241,11 +242,8 @@ void text_vga_putws(
     struct text_device* device,
     const wchar* str
 ){
-    while(*str)
-    {
-        text_vga_putc(device, *str);
-        str++;
-    }
+    struct text_vga_data* data = (struct text_vga_data*) device->driver_data;
+    while(*str) vga_write_char(data, *str++);
     vga_update_cursor(data);
 }
 
@@ -282,7 +280,7 @@ const struct text_driver text_vga_driver = {
     .set_color_rgb = text_vga_set_color_rgb,
     .putc = text_vga_putc,
     .puts = text_vga_puts,
-    .putus = text_vga_putus,
+    .putws = text_vga_putws,
     .set_cursor_pos = text_vga_set_cursor_pos,
     .set_cursor_visible = text_vga_set_cursor_visible,
 };

@@ -62,7 +62,7 @@ static inline void outl(uint16_t port, uint32_t value)
     );
 }
 
-static inline uint8_t insb(uint16_t port, void* values, size_t count)
+static inline void insb(uint16_t port, void* values, size_t count)
 {
     asm volatile(
         "cld\n"
@@ -72,7 +72,7 @@ static inline uint8_t insb(uint16_t port, void* values, size_t count)
     );
 }
 
-static inline uint16_t insw(uint16_t port, void* values, size_t count)
+static inline void insw(uint16_t port, void* values, size_t count)
 {
     asm volatile(
         "cld\n"
@@ -82,7 +82,7 @@ static inline uint16_t insw(uint16_t port, void* values, size_t count)
     );
 }
 
-static inline uint32_t insl(uint16_t port, void* values, size_t count)
+static inline void insl(uint16_t port, void* values, size_t count)
 {
     asm volatile(
         "cld\n"
@@ -124,6 +124,6 @@ static inline void outsl(uint16_t port, const void* values, size_t count)
 
 static inline void io_pause()
 {
-    asm volatile("outb %%al, $0x80");
+    asm volatile("outb %al, $0x80");
 }
 #endif

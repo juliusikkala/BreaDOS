@@ -1,6 +1,6 @@
 #ifndef BREADOS_TEXT_DEVICE_H
 #define BREADOS_TEXT_DEVICE_H
-#include "../types.h"
+#include "types.h"
 #include "driver.h"
 
 enum text_device_type
@@ -28,7 +28,7 @@ size_t get_text_device_count();
 
 /* Returns the actual size of the devices structure. */
 size_t get_text_devices(
-    struct text_devices* devices[],
+    struct text_device* devices[],
     size_t count
 );
 
@@ -47,7 +47,7 @@ inline void set_color_rgb(
 inline void putc(
     struct text_device* device,
     wchar c
-){ device->driver->putc(device, c);
+){ device->driver->putc(device, c); }
 
 /* Writes a string */
 inline void puts(
