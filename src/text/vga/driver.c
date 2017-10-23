@@ -156,36 +156,94 @@ static inline void vga_write_char(struct text_vga_data* data, char c)
     };
 }
 
-
 static inline enum vga_color rgb8_to_vga(uint32_t rgb8)
 {
-    int r = (rgb8 >> 16) & 0xFF;
-    int g = (rgb8 >> 8) & 0xFF;
-    int b = rgb8 & 0xFF;
-
-    r = (r+42)/85;
-    g = (g+42)/85;
-    b = (b+42)/85;
-
-    if(r == 0 && g == 0 && b == 0) return VGA_COLOR_BLACK;
-    if(r == 0 && g == 0 && b == 2) return VGA_COLOR_BLUE;
-    if(r == 0 && g == 2 && b == 0) return VGA_COLOR_GREEN;
-    if(r == 0 && g == 2 && b == 2) return VGA_COLOR_CYAN;
-    if(r == 2 && g == 0 && b == 0) return VGA_COLOR_RED;
-    if(r == 2 && g == 0 && b == 2) return VGA_COLOR_MAGENTA;
-    if(r == 2 && g == 1 && b == 0) return VGA_COLOR_BROWN;
-    if(r == 2 && g == 2 && b == 2) return VGA_COLOR_GRAY;
-    if(r == 1 && g == 1 && b == 1) return VGA_COLOR_DARK_GRAY;
-    if(r == 1 && g == 1 && b == 3) return VGA_COLOR_LIGHT_BLUE;
-    if(r == 1 && g == 3 && b == 1) return VGA_COLOR_LIGHT_GREEN;
-    if(r == 1 && g == 3 && b == 3) return VGA_COLOR_LIGHT_CYAN;
-    if(r == 3 && g == 1 && b == 1) return VGA_COLOR_LIGHT_RED;
-    if(r == 3 && g == 1 && b == 3) return VGA_COLOR_LIGHT_MAGENTA;
-    if(r == 3 && g == 3 && b == 1) return VGA_COLOR_YELLOW;
-    if(r == 3 && g == 3 && b == 3) return VGA_COLOR_WHITE;
-
-    /* Cannot be reached */
-    return VGA_COLOR_WHITE;
+#define COL(a,b,c) ((a<<22)|(b<<14)|(c<<6))
+    switch(rgb8&0xC0C0C0)
+    {
+    case COL(0, 0, 0):
+        return VGA_COLOR_BLACK;
+    case COL(0, 0, 1):
+    case COL(0, 0, 2):
+    case COL(1, 0, 2):
+    case COL(0, 1, 2):
+    case COL(1, 1, 2):
+        return VGA_COLOR_BLUE;
+    case COL(0, 1, 0):
+    case COL(0, 2, 0):
+    case COL(1, 2, 0):
+    case COL(0, 2, 1):
+    case COL(1, 2, 1):
+        return VGA_COLOR_GREEN;
+    case COL(0, 1, 1):
+    case COL(0, 2, 2):
+    case COL(1, 2, 2):
+        return VGA_COLOR_CYAN;
+    case COL(1, 0, 0):
+    case COL(2, 0, 0):
+    case COL(2, 0, 1):
+    case COL(2, 1, 1):
+        return VGA_COLOR_RED;
+    case COL(1, 0, 1):
+    case COL(2, 0, 2):
+    case COL(2, 1, 2):
+        return VGA_COLOR_MAGENTA;
+    case COL(1, 1, 0):
+    case COL(2, 1, 0):
+    case COL(2, 2, 0):
+    case COL(2, 2, 1):
+        return VGA_COLOR_BROWN;
+    case COL(2, 2, 2):
+        return VGA_COLOR_GRAY;
+    case COL(1, 1, 1):
+        return VGA_COLOR_DARK_GRAY;
+    case COL(0, 0, 3):
+    case COL(1, 0, 3):
+    case COL(0, 1, 3):
+    case COL(2, 0, 3):
+    case COL(0, 2, 3):
+    case COL(1, 1, 3):
+    case COL(2, 1, 3):
+    case COL(1, 2, 3):
+    case COL(2, 2, 3):
+        return VGA_COLOR_LIGHT_BLUE;
+    case COL(0, 3, 0):
+    case COL(1, 3, 0):
+    case COL(0, 3, 1):
+    case COL(2, 3, 0):
+    case COL(0, 3, 2):
+    case COL(1, 3, 1):
+    case COL(2, 3, 1):
+    case COL(1, 3, 2):
+    case COL(2, 3, 2):
+        return VGA_COLOR_LIGHT_GREEN;
+    case COL(0, 3, 3):
+    case COL(1, 3, 3):
+    case COL(2, 3, 3):
+        return VGA_COLOR_LIGHT_CYAN;
+    case COL(3, 0, 0):
+    case COL(3, 1, 0):
+    case COL(3, 0, 1):
+    case COL(3, 2, 0):
+    case COL(3, 0, 2):
+    case COL(3, 1, 1):
+    case COL(3, 2, 1):
+    case COL(3, 1, 2):
+    case COL(3, 2, 2):
+        return VGA_COLOR_LIGHT_RED;
+    case COL(3, 0, 3):
+    case COL(3, 1, 3):
+    case COL(3, 2, 3):
+        return VGA_COLOR_LIGHT_MAGENTA;
+    case COL(3, 3, 0):
+    case COL(3, 3, 1):
+    case COL(3, 3, 2):
+        return VGA_COLOR_YELLOW;
+    default:
+    case COL(3, 3, 3):
+        return VGA_COLOR_WHITE;
+    };
+#undef COL
 }
 
 void text_vga_init(
@@ -253,8 +311,8 @@ void text_vga_set_cursor_pos(
     uint32_t y
 ){
     struct text_vga_data* data = (struct text_vga_data*) device->driver_data;
-    data->x = x;
-    data->y = y;
+    data->x = x < VGA_WIDTH ? x : VGA_WIDTH - 1;
+    data->y = y < VGA_HEIGHT ? y : VGA_HEIGHT - 1;
     vga_update_cursor(data);
 }
 

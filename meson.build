@@ -42,6 +42,7 @@ linkerfile = '@0@/@1@'.format(meson.current_source_dir(), files('src/linker.ld')
 kernel = executable('breados.bin',
     [
       'src/entry.c',
+      'src/rye.c',
       'src/memory.c',
       'src/text/device.c',
       'src/text/vga/driver.c',
@@ -83,7 +84,7 @@ custom_target('cdrom',
     '-o',
     '@OUTPUT@'
   ],
-  depend_files: ['src/grub.cfg', kernel.full_path()],
+  build_always: true,
   install: true,
   install_dir: ''
 )
