@@ -83,6 +83,7 @@ custom_target('cdrom',
     '-o',
     '@OUTPUT@'
   ],
+  depend_files: ['src/grub.cfg', kernel.full_path()],
   install: true,
   install_dir: ''
 )
