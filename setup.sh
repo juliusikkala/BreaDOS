@@ -12,7 +12,7 @@ function require_programs {
         fi
     done
 }
-require_programs wget make gcc as ar objcopy ld strip meson
+require_programs wget make gcc as ar objcopy ld strip meson automake
 
 tools/setup.sh
 rm -rf build

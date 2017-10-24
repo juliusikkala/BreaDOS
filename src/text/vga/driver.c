@@ -52,12 +52,13 @@ static inline void vga_update_cursor(struct text_vga_data* data)
 {
     if(data->cursor_visible)
     {
-        uint16_t pos = data->y*VGA_WIDTH + data->x;
+        uint16_t pos = data->y * VGA_WIDTH + data->x;
+        if(pos >= VGA_WIDTH * VGA_HEIGHT) pos = VGA_WIDTH * VGA_HEIGHT - 1;
 
         outb(0x3D4, 0x0F);
-        outb(0x3D5, pos&0xFF);
+        outb(0x3D5, pos & 0xFF);
         outb(0x3D4, 0x0E);
-        outb(0x3D5, pos>>8);
+        outb(0x3D5, pos >> 8);
     }
 }
 
@@ -149,9 +150,9 @@ static inline void vga_write_char(struct text_vga_data* data, char c)
         data->x = 0;
         break;
     default:
+        if(data->x == VGA_WIDTH) vga_newline(data);
         data->buffer[data->y * VGA_WIDTH + data->x] = vga_char(c, data->color);
         data->x++;
-        if(data->x == VGA_WIDTH) vga_newline(data);
         break;
     };
 }

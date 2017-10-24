@@ -1,4 +1,5 @@
 #include "text/device.h"
+#include "io.h"
 
 uint32_t colors[] = {
     0x000000,
@@ -946,11 +947,12 @@ struct text_part rye_data[] = {
     {8,7,": "},
     {15,7,"%"},
     {7,15,"X::   ....... .. . .... .. ... . .. ."},/*\n*/
-    {7,15,"..... . ... ... .. .. .. .. .  . ..        .... . . .. .. . ... ... .. . ... .."}/*\n*/
+    {7,15,"..... . ... ... .. .. .. .. .  . ..        .... . . .. .. . ... ... .. . ... .. "}/*\n*/
 };
 
 void rye(struct text_device* terminal)
 {
+    set_cursor_pos(terminal, 0, 0);
     for(uint32_t i = 0; i < sizeof(rye_data)/sizeof(struct text_part); ++i)
     {
         struct text_part part = rye_data[i];
