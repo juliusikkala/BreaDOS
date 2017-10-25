@@ -45,7 +45,7 @@ kernel = executable('breados.bin',
       'src/rye.c',
       'src/memory.c',
       'src/text/device.c',
-      'src/text/vga/driver.c',
+      'src/drivers/vga.c',
       bootstrap
     ],
     include_directories: [src_inc],

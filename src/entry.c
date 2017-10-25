@@ -6,6 +6,7 @@ void rye(struct text_device* terminal);
 void kernel_main(void)
 {
     init_text_devices();
+    init_vga();
 
     struct text_device* terminal;
     get_text_devices(&terminal, 1);

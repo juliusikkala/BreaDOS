@@ -9,12 +9,9 @@ struct text_driver
     /* Name of the driver */
     const char* name;
 
-    /* Sets up the driver and relevant fields in 'device'. */
-    void (*const init)(
-        struct text_device* device
-    );
-
-    /* Gracefully deinitializes the driver and device. */
+    /* Gracefully deinitializes the driver and device. Must deallocate
+     * the text_device* if necessary.
+     */
     void (*const deinit)(
         struct text_device* device
     );

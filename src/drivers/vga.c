@@ -1,5 +1,6 @@
-#include "driver.h"
+#include "vga.h"
 #include "text/device.h"
+#include "text/driver.h"
 #include "io.h"
 #include "memory.h"
 #define VGA_WIDTH 80
@@ -247,13 +248,12 @@ static inline enum vga_color rgb8_to_vga(uint32_t rgb8)
 #undef COL
 }
 
-void text_vga_init(
+static void text_vga_init(
     struct text_device* device
 ){
     device->name = "VGA";
     device->width = VGA_WIDTH;
     device->height = VGA_HEIGHT;
-    device->type = TEXT_DEVICE_VGA_TEXT_MODE;
     device->driver_data = &text_vga_data;
 
     struct text_vga_data* data = (struct text_vga_data*) device->driver_data;
@@ -334,7 +334,6 @@ void text_vga_set_cursor_visible(
 
 const struct text_driver text_vga_driver = {
     .name = "VGA text mode",
-    .init = text_vga_init,
     .deinit = text_vga_deinit,
     .set_color_rgb = text_vga_set_color_rgb,
     .putc = text_vga_putc,
@@ -343,3 +342,22 @@ const struct text_driver text_vga_driver = {
     .set_cursor_pos = text_vga_set_cursor_pos,
     .set_cursor_visible = text_vga_set_cursor_visible,
 };
+
+struct text_device text_vga_device = {
+    .name = "VGA",
+    .driver = &text_vga_driver,
+    .driver_data = &text_vga_data,
+    .width = VGA_WIDTH,
+    .height = VGA_HEIGHT,
+};
+
+void init_vga()
+{
+    text_vga_init(&text_vga_device);
+    add_text_device(&text_vga_device);
+}
+
+void deinit_vga()
+{
+    remove_text_device(text_vga_device.id);
+}
