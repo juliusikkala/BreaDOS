@@ -7,7 +7,6 @@ BINUTILS="binutils-2.29"
 GRUB="grub-2.02~rc2"
 
 PREFIX=$PWD
-TARGET=i686-elf
 PATH="$PREFIX/bin:$PATH"
 export PATH
 
@@ -18,7 +17,15 @@ if [ ! -e ${BINUTILS} ]; then
     
     mkdir build-binutils
     pushd build-binutils
-    ../${BINUTILS}/configure --target=$TARGET --prefix="$PREFIX" --with-sysroot --disable-nls --disable-werror
+    ../${BINUTILS}/configure --target=i686-elf --prefix="$PREFIX" --with-sysroot --disable-nls --disable-werror
+    make -j32
+    make install
+    popd
+    rm -rf build-binutils
+
+    mkdir build-binutils
+    pushd build-binutils
+    ../${BINUTILS}/configure --target=x86_64-elf --prefix="$PREFIX" --with-sysroot --disable-nls --disable-werror
     make -j32
     make install
     popd
@@ -36,7 +43,17 @@ if [ ! -e ${GCC} ]; then
 
     mkdir build-gcc
     pushd build-gcc
-    ../${GCC}/configure --target=$TARGET --prefix="$PREFIX" --disable-nls --enable-languages=c --without-headers
+    ../${GCC}/configure --target=i686-elf --prefix="$PREFIX" --disable-nls --enable-languages=c --without-headers
+    make all-gcc -j32
+    make all-target-libgcc -j32
+    make install-gcc
+    make install-target-libgcc
+    popd
+    rm -rf build-gcc
+
+    mkdir build-gcc
+    pushd build-gcc
+    ../${GCC}/configure --target=x86_64-elf --prefix="$PREFIX" --disable-nls --enable-languages=c --without-headers
     make all-gcc -j32
     make all-target-libgcc -j32
     make install-gcc
