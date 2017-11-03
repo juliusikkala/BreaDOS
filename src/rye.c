@@ -952,11 +952,11 @@ struct text_part rye_data[] = {
 
 void rye(struct text_device* terminal)
 {
-    set_cursor_pos(terminal, 0, 0);
+    uint32_t j = 0;
     for(uint32_t i = 0; i < sizeof(rye_data)/sizeof(struct text_part); ++i)
     {
         struct text_part part = rye_data[i];
-        set_color_rgb(terminal, colors[part.fg], colors[part.bg]);
+        set_color_rgb(terminal, colors[(part.fg + j) % 16], colors[(part.bg + j) % 16]);
         puts(terminal, part.str);
     }
 }

@@ -5,6 +5,12 @@
 .set FLAGS,    ALIGN | MEMINFO
 .set MAGIC,    0x1BADB002
 .set CHECKSUM, -(MAGIC + FLAGS)
+.set P_RW, 0b000000000011
+.set EFER, 0xC0000080
+.set PAE, 1<<5
+.set LME, 1<<8
+.set LMA, 1<<10
+.set PG, 1<<31
 
 #Multiboot header
 .section .multiboot
@@ -53,6 +59,64 @@ _start:
     cpuid
     testl $0x20000000, %edx
     jz fail_long_mode
+
+    #Set up paging
+
+    #Set up PML4T
+    movl $0x1000, %edi #0x1000 is the first 4k-aligned usable memory block
+    movl %edi, %cr3
+
+    #Clear PML4T
+    xorl %eax, %eax
+    movl $0x1000, %ecx #0x1000 is the size of PML4T here
+    rep stosl
+
+    #Load the first entries of PML4T, PDPT and PDT
+    movl %cr3, %edi
+    movl $0x2000|P_RW, (%edi)
+    movl $0x2000, %edi
+    movl $0x3000|P_RW, (%edi)
+    movl $0x3000, %edi
+    movl $0x4000|P_RW, (%edi)
+    movl $0x4000, %edi
+
+    #Load PT
+    movl $P_RW, %ebx
+    movl $512, %ecx
+
+page_table_loop:
+    movl %ebx, (%edi)
+    addl $0x1000, %ebx
+    addl $8, %edi
+    decl %ecx
+    jnz page_table_loop
+    
+    #Enable PAE
+    movl %cr4, %eax
+    orl $PAE, %eax
+    movl %eax, %cr4
+
+    #Interrupts must be disabled in long mode until IDTR is loaded with 64-bit
+    #interrupt descriptors 
+    cli 
+
+    #Enable long mode
+    movl $EFER, %ecx
+    rdmsr
+    orl $LME, %eax
+    wrmsr
+
+    #Enable paging and thus activate long mode
+    movl %cr0, %eax
+    orl $PG, %eax
+    movl %eax, %cr0
+
+    #Check LMA
+    rdmsr
+    testl $LMA, %eax
+    jz fail_long_mode
+
+    #We are now successfully in the 32-bit compatibility submode of long mode.
 
     call kernel_main
 halt_and_catch_fire:
