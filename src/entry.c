@@ -1,4 +1,5 @@
 #include "text/device.h"
+#include "drivers/vga.h"
 #include "io.h"
 
 void rye(struct text_device* terminal);

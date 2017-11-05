@@ -1,5 +1,4 @@
 .code32
-
 .set ALIGN,    1<<0
 .set MEMINFO,  1<<1
 .set FLAGS,    ALIGN | MEMINFO
@@ -28,9 +27,23 @@ stack_top:
 
 .section .data
 sorry64bitonly:
-    .ascii "Here's a nickel kid. Get yourself a better computer. (Your processor seems to be 32-bit. BreaDOS only supports 64-bit processors.)"
+.ascii "Here's a nickel kid. Get yourself a better computer. (Your processor seems to be 32-bit. BreaDOS only supports 64-bit processors.)"
 sorry64bitonly_end:
 .set sorry64bitonly_len, sorry64bitonly_end - sorry64bitonly
+
+.align 8
+GDT64:
+GDT64_NULL:
+.quad 0
+GDT64_CODE:
+.word 0, 0
+.byte 0, 0b10011000, 0b00100000, 0
+GDT64_DATA:
+.word 0, 0
+.byte 0, 0b10010000, 0, 0
+GDT64_GDTR:
+.word . - GDT64 - 1
+.quad GDT64
 
 .section .text
 .global _start

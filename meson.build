@@ -15,7 +15,7 @@ endif
 
 #FIXME: Workaround, when meson 0.43.0 lands find_program should be able to use
 #cross_file.txt to find the right program.
-as = find_program('tools/bin/i686-elf-as')
+as = find_program('tools/bin/x86_64-elf-as')
 grub_mkrescue = find_program('tools/bin/grub-mkrescue')
 create_fs = find_program('scripts/create_fs.sh')
 
@@ -55,7 +55,8 @@ kernel = executable('breados.bin',
     link_args: [
       '-T', linkerfile,
       '-ffreestanding',
-      '-nostdlib'
+      '-nostdlib',
+      '-z', 'max-page-size=0x1000'
     ],
     install: true
 )
