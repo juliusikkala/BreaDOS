@@ -131,18 +131,20 @@ page_table_loop:
 
     #We are now successfully in the 32-bit compatibility submode of long mode.
 
-    call kernel_main
-halt_and_catch_fire:
-    cli
-1:  hlt
-    jmp 1b
+    #Load 64-bit GDTR, enters the 64-bit submode.
+    lgdt GDT64_GDTR
+    jmp $GDT64_CODE-GDT64, $kernel_main
 
 #Handles 32-bit processors "gracefully" ;)
 fail_long_mode:
     movl $sorry64bitonly_len, %ecx
     movl $sorry64bitonly, %esi
     call print_error
-    jmp halt_and_catch_fire
+    #Halt and catch fire
+    cli
+1:  hlt
+    jmp 1b
+
 
 #Length in %ecx, string pointer in %esi. Clobbers: %eax, %edi
 print_error:

@@ -12,11 +12,10 @@ void kernel_main(void)
     struct text_device* terminal;
     get_text_devices(&terminal, 1);
 
-    puts(terminal, "\nText devices initialized.\n");
-    puts(terminal, "Nothing to do.\n");
-
-
     set_cursor_visible(terminal, false);
+
+    puts(terminal, "Text devices initialized.\n");
+    puts(terminal, "Nothing to do.\n");
 
     /*
     uint32_t colors[] = {
@@ -48,4 +47,6 @@ void kernel_main(void)
         }
     }*/
     rye(terminal);
+
+    asm volatile("cli\n1: hlt\njmp 1b");
 }

@@ -40,3 +40,36 @@ void* memmove(void* dst, const void* src, size_t num)
 
     return dst;
 }
+
+volatile void* vmemcpy(
+    volatile void* dst,
+    volatile const void* src,
+    size_t num
+){
+    volatile char* dstc = (volatile char*)dst;
+    const char* srcc = (const char*)src;
+    while(num--) *dstc++ = *srcc++;
+    return dst;
+}
+
+volatile void* vmemmove(
+    volatile void* dst,
+    volatile const void* src,
+    size_t num
+){
+    volatile char* dstc = (volatile char*)dst;
+    const char* srcc = (const char*)src;
+
+    if(dstc < srcc)
+    {
+        while(num--) *dstc++ = *srcc++;
+    }
+    else if(srcc < dstc)
+    {
+        srcc += num-1;
+        dstc += num-1;
+        while(num--) *dstc-- = *srcc--;
+    }
+
+    return dst;
+}

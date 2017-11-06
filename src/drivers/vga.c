@@ -29,7 +29,7 @@ struct text_vga_data
 {
     uint32_t x, y;
     uint8_t color;
-    uint16_t* buffer;
+    volatile uint16_t* buffer;
     bool cursor_visible;
 } text_vga_data;
 
@@ -97,12 +97,9 @@ static inline void vga_clear(struct text_vga_data* data)
     data->x = data->y = 0;
     vga_update_cursor(data);
 
-    for(uint32_t y = 0; y < VGA_HEIGHT; ++y)
+    for(uint32_t i = 0; i < VGA_HEIGHT*VGA_WIDTH; ++i)
     {
-        for(uint32_t x = 0; x < VGA_WIDTH; ++x)
-        {
-            data->buffer[y*VGA_WIDTH + x] = vga_char(' ', data->color);
-        }
+        data->buffer[i] = vga_char(' ', data->color);
     }
 }
 
@@ -126,7 +123,7 @@ static inline void vga_newline(struct text_vga_data* data)
     else
     {
         /* Scroll previous lines */
-        memmove(
+        vmemmove(
             data->buffer,
             data->buffer + VGA_WIDTH,
             (VGA_HEIGHT-1)*VGA_WIDTH*2
