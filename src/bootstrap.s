@@ -10,6 +10,7 @@
 .set LME, 1<<8
 .set LMA, 1<<10
 .set PG, 1<<31
+.set KERNEL_VMA, 0xFFFFFFFF80000000
 
 #Multiboot header
 .section .multiboot
@@ -131,9 +132,10 @@ page_table_loop:
 
     #We are now successfully in the 32-bit compatibility submode of long mode.
 
+    jmp fail_long_mode
     #Load 64-bit GDTR, enters the 64-bit submode.
     lgdt GDT64_GDTR
-    jmp $GDT64_CODE-GDT64, $kernel_main
+    ljmp $GDT64_CODE-GDT64, $enter64
 
 #Handles 32-bit processors "gracefully" ;)
 fail_long_mode:
@@ -156,6 +158,12 @@ print_error_loop:
     movw %ax, (%edi,%ecx,2)
     jnz print_error_loop
     ret
+
+.code64
+enter64:
+    addq $KERNEL_VMA, %rsp
+    movabsq $kernel_main, %rax
+    jmp *%rax
 
 .size _start, . - _start
 

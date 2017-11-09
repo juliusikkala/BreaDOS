@@ -1,51 +1,62 @@
+OUTPUT_FORMAT(elf64-x86-64)
 ENTRY(_start)
+
+KERNEL_LMA = 1M;
+KERNEL_VMA = 0xFFFFFFFF80000000;
 
 SECTIONS
 {
-    . = 1M;
+    . = KERNEL_LMA;
 
-    .text BLOCK(4K) : ALIGN(4K)
+    .bootstrap.text BLOCK(4K) : ALIGN(4K)
     {
         *(.multiboot)
         *bootstrap.o (.text)
+        . = ALIGN(4K);
     }
 
-    .rodata BLOCK(4K) : ALIGN(4K)
-    {
-        *bootstrap.o (.rodata)
-    }
-
-    .data BLOCK(4K) : ALIGN(4K)
+    .bootstrap.data BLOCK(4K) : ALIGN(4K)
     {
         *bootstrap.o (.data)
+        . = ALIGN(4K);
     }
 
-    .bss BLOCK(4K) : ALIGN(4K)
+    .bootstrap.bss :
     {
-        *bootstrap.o (COMMON)
         *bootstrap.o (.bss)
+        . = ALIGN(4K);
     }
 
-    . += 0;
+    . += KERNEL_VMA;
 
-    .text : AT(ADDR(.text) - 0)
+    .text : AT(ADDR(.text) - KERNEL_VMA)
     {
         _code = .;
         *(EXCLUDE_FILE(*bootstrap.o) .text)
         *(.rodata*)
-        . = ALIGN(4096);
+        . = ALIGN(4K);
     }
 
-    .data ALIGN(0x1000) : AT(ADDR(.data) - 0)
+    .data ALIGN(4K) : AT(ADDR(.data) - KERNEL_VMA)
     {
-        *(.data)
+        *(EXCLUDE_FILE(*bootstrap.o) .data)
     }
 
-    .bss : AT(ADDR(.bss) - 0)
+    .rodata ALIGN(4K) : AT(ADDR(.rodata) - KERNEL_VMA)
+    {
+        *(EXCLUDE_FILE(*bootstrap.o) .rodata*)
+    }
+
+    .bss : AT(ADDR(.bss) - KERNEL_VMA)
     {
         _sbss = .;
         *(COMMON)
         *(.bss)
         _ebss = .;
+    }
+
+    /DISCARD/ : {
+        *(.comment)
+        *(note.*)
     }
 }

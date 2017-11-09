@@ -51,7 +51,7 @@ kernel = executable('breados.bin',
     include_directories: [src_inc],
     dependencies: [gcc_dep],
     link_depends: ['src/linker.ld'],
-    c_args: ['-ffreestanding', '-Wall', '-Wextra'],
+    c_args: ['-ffreestanding', '-Wall', '-Wextra', '-mcmodel=kernel'],
     link_args: [
       '-T', linkerfile,
       '-ffreestanding',
