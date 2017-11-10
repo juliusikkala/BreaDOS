@@ -27,11 +27,6 @@ stack_bottom:
 stack_top:
 
 .section .data
-sorry64bitonly:
-.ascii "Here's a nickel kid. Get yourself a better computer. (Your processor seems to be 32-bit. BreaDOS only supports 64-bit processors.)"
-sorry64bitonly_end:
-.set sorry64bitonly_len, sorry64bitonly_end - sorry64bitonly
-
 .align 8
 GDT64:
 GDT64_NULL:
@@ -45,6 +40,12 @@ GDT64_DATA:
 GDT64_GDTR:
 .word . - GDT64 - 1
 .quad GDT64
+
+sorry64bitonly:
+.ascii "Here's a nickel kid. Get yourself a better computer. (Your processor seems to be 32-bit. BreaDOS only supports 64-bit processors.)"
+sorry64bitonly_end:
+.set sorry64bitonly_len, sorry64bitonly_end - sorry64bitonly
+
 
 .section .text
 .global _start
@@ -85,16 +86,24 @@ _start:
     movl $0x1000, %ecx #0x1000 is the size of PML4T here
     rep stosl
 
-    #Load the first entries of PML4T, PDPT and PDT
-    movl %cr3, %edi
+    #Load the first entries of PML4T, PDPT and PDT, fill PT
+    #Identity map 0-2MiB map KERNEL_VMA to the same 0-2MiB
+    #PML4T
+    movl $0x1000, %edi
     movl $0x2000|P_RW, (%edi)
+    movl $0x1FF8, %edi
+    movl $0x2000|P_RW, (%edi)
+    #PDPT
     movl $0x2000, %edi
     movl $0x3000|P_RW, (%edi)
+    movl $0x2FF0, %edi
+    movl $0x3000|P_RW, (%edi)
+    #PDT
     movl $0x3000, %edi
     movl $0x4000|P_RW, (%edi)
-    movl $0x4000, %edi
 
-    #Load PT
+    #PT
+    movl $0x4000, %edi
     movl $P_RW, %ebx
     movl $512, %ecx
 
@@ -132,7 +141,6 @@ page_table_loop:
 
     #We are now successfully in the 32-bit compatibility submode of long mode.
 
-    jmp fail_long_mode
     #Load 64-bit GDTR, enters the 64-bit submode.
     lgdt GDT64_GDTR
     ljmp $GDT64_CODE-GDT64, $enter64
@@ -160,7 +168,9 @@ print_error_loop:
     ret
 
 .code64
+.global enter64
 enter64:
+    # Fix rsp address for virtual memory
     addq $KERNEL_VMA, %rsp
     movabsq $kernel_main, %rax
     jmp *%rax

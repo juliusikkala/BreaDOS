@@ -1,7 +1,9 @@
 #ifndef BREADOS_MEMORY_H
 #define BREADOS_MEMORY_H
 #include "types.h"
+#define KERNEL_VMA 0xFFFFFFFF80000000
 
+void init_memory();
 size_t wstrlen(const wchar* str);
 size_t strlen(const char* str);
 void* memcpy(void* dst, const void* src, size_t num);

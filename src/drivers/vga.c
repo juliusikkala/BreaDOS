@@ -254,7 +254,7 @@ static void text_vga_init(
     device->driver_data = &text_vga_data;
 
     struct text_vga_data* data = (struct text_vga_data*) device->driver_data;
-    data->buffer = (uint16_t*) 0xB8000;
+    data->buffer = (uint16_t*) (KERNEL_VMA + 0xB8000);
     data->cursor_visible = false;
     data->x = data->y = 0;
 
