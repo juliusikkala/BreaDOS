@@ -294,15 +294,6 @@ void text_vga_puts(
     vga_update_cursor(data);
 }
 
-void text_vga_putws(
-    struct text_device* device,
-    const wchar* str
-){
-    struct text_vga_data* data = (struct text_vga_data*) device->driver_data;
-    while(*str) vga_write_char(data, *str++);
-    vga_update_cursor(data);
-}
-
 void text_vga_set_cursor_pos(
     struct text_device* device,
     uint32_t x,
@@ -335,7 +326,6 @@ const struct text_driver text_vga_driver = {
     .set_color_rgb = text_vga_set_color_rgb,
     .putc = text_vga_putc,
     .puts = text_vga_puts,
-    .putws = text_vga_putws,
     .set_cursor_pos = text_vga_set_cursor_pos,
     .set_cursor_visible = text_vga_set_cursor_visible,
 };

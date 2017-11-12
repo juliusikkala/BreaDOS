@@ -19,18 +19,25 @@ void init_memory()
     );
 }
 
-size_t wstrlen(const wchar* str)
+void set_msr(uint32_t msr, uint64_t val)
 {
-    const wchar* start = str;
-    while(*str++);
-    return str - start;
+    uint32_t eax = val & 0xFFFFFFFF, edx = val >> 32;
+    asm(
+        "wrmsr\n"
+        :
+        : "a" (eax), "d" (edx), "c"(msr)
+    );
 }
 
-size_t strlen(const char* str)
+uint64_t get_msr(uint32_t msr)
 {
-    const char* start = str;
-    while(*str++);
-    return str - start;
+    uint32_t eax, edx;
+    asm(
+        "rdmsr\n"
+        : "=a" (eax), "=d" (edx)
+        : "c"(msr)
+    );
+    return ((uint64_t)edx << 32) | eax;
 }
 
 void* memcpy(void* dst, const void* src, size_t num)

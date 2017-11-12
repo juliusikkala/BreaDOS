@@ -1,25 +1,26 @@
-#include "text/device.h"
+#include "text/text.h"
 #include "drivers/vga.h"
 #include "io.h"
+#include "memory.h"
+#include "interrupt.h"
+#include "multiboot.h"
 
-void rye(struct text_device* terminal);
+void rye();
 
-void kernel_main(void)
+void kernel_main(struct multiboot_info* info)
 {
     init_memory();
+    init_interrupts();
 
     init_text_devices();
     init_vga();
 
-    struct text_device* terminal;
-    get_text_devices(&terminal, 1);
+    set_cursor_visible(false);
 
-    set_cursor_visible(terminal, false);
+    puts("Text devices initialized.\n");
+    puts("Nothing to do.\n");
 
-    puts(terminal, "Text devices initialized.\n");
-    puts(terminal, "Nothing to do.\n");
-
-    rye(terminal);
+    rye();
 
     asm volatile("cli\n1: hlt\njmp 1b");
 }

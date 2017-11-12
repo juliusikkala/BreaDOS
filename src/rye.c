@@ -1,4 +1,4 @@
-#include "text/device.h"
+#include "text/text.h"
 #include "io.h"
 
 uint32_t colors[] = {
@@ -950,13 +950,13 @@ struct text_part rye_data[] = {
     {7,15,"..... . ... ... .. .. .. .. .  . ..        .... . . .. .. . ... ... .. . ... .. "}/*\n*/
 };
 
-void rye(struct text_device* terminal)
+void rye()
 {
     uint32_t j = 0;
     for(uint32_t i = 0; i < sizeof(rye_data)/sizeof(struct text_part); ++i)
     {
         struct text_part part = rye_data[i];
-        set_color_rgb(terminal, colors[(part.fg + j) % 16], colors[(part.bg + j) % 16]);
-        puts(terminal, part.str);
+        set_color_rgb(colors[(part.fg + j) % 16], colors[(part.bg + j) % 16]);
+        puts(part.str);
     }
 }

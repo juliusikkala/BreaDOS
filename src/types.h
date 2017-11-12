@@ -5,4 +5,5 @@
 #include <stdint.h>
 
 typedef uint32_t wchar;
+typedef int64_t ssize_t;
 #endif

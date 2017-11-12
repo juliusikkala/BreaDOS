@@ -1,6 +1,7 @@
 #include "device.h"
 #include "memory.h"
 #include "drivers/vga.h"
+#include "text/text.h"
 
 /* TODO: Make this text_device** text_devices once we have kmalloc */
 struct text_device* text_devices[1];
@@ -60,6 +61,9 @@ uint32_t add_text_device(struct text_device* device)
 {
     text_devices[text_device_count++] = device;
     device->id = text_device_id_counter++;
+
+    if(text_device_count == 1) set_default_text_device(device);
+
     return device->id;
 }
 
@@ -71,12 +75,19 @@ void remove_text_device(uint32_t id)
     {
         if(text_devices[i]->id == id)
         {
-            text_devices[i]->driver->deinit(text_devices[i]);
+            struct text_device* device = text_devices[i];
             memmove(
                 text_devices + i,
                 text_devices + i + 1,
                 --text_device_count - i
             );
+            if(get_default_text_device() == device)
+            {
+                set_default_text_device(
+                    text_device_count ? text_devices[0] : NULL
+                );
+            }
+            device->driver->deinit(device);
             return;
         }
     }

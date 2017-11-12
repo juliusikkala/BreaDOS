@@ -36,12 +36,6 @@ struct text_driver
         const char* str
     );
 
-    /* Writes a unicode string */
-    void (*const putws)(
-        struct text_device* device,
-        const wchar* str
-    );
-
     /* Sets the cursor position on screen */
     void (*const set_cursor_pos)(
         struct text_device* device,

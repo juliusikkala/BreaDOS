@@ -46,12 +46,14 @@ sorry64bitonly:
 sorry64bitonly_end:
 .set sorry64bitonly_len, sorry64bitonly_end - sorry64bitonly
 
-
 .section .text
 .global _start
 .type _start, @function
 _start:
     movl $stack_top, %esp
+    #Save multiboot information structure address (with upper bits zeroed)
+    pushl %ebx
+    pushl $0
 
     #Check for the existence of CPUID
     pushfl
@@ -155,7 +157,6 @@ fail_long_mode:
 1:  hlt
     jmp 1b
 
-
 #Length in %ecx, string pointer in %esi. Clobbers: %eax, %edi
 print_error:
     movl $0xB8000, %edi
@@ -172,6 +173,11 @@ print_error_loop:
 enter64:
     # Fix rsp address for virtual memory
     addq $KERNEL_VMA, %rsp
+
+    # Restore multiboot information structure address
+    popq %rdi
+    addq $KERNEL_VMA, %rdi
+
     movabsq $kernel_main, %rax
     jmp *%rax
 
