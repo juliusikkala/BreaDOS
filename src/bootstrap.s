@@ -20,8 +20,8 @@
 .long CHECKSUM
 
 .section .bss
-#Reserve stack (must be aligned to to 16 bytes due to compiler assumptions)
-.align 16
+#Reserve stack (align to page size)
+.align 4096
 stack_bottom:
 .skip 16384
 stack_top:
@@ -83,38 +83,42 @@ _start:
     movl $0x1000, %edi #0x1000 is the first 4k-aligned usable memory block
     movl %edi, %cr3
 
-    #Clear PML4T
+    #Clear all tables (0x1000-0x5FFF)
     xorl %eax, %eax
-    movl $0x1000, %ecx #0x1000 is the size of PML4T here
+    movl $0x1400, %ecx 
     rep stosl
 
     #Load the first entries of PML4T, PDPT and PDT, fill PT
-    #Identity map 0-2MiB map KERNEL_VMA to the same 0-2MiB
+    #Identity map 0-2MiB, map KERNEL_VMA to the same 0-2MiB
+    #Map stack to the top of the memory, so that it can easily be extended
+    #later.
     #PML4T
     movl $0x1000, %edi
     movl $0x2000|P_RW, (%edi)
-    movl $0x1FF8, %edi
-    movl $0x2000|P_RW, (%edi)
+    movl $0x2000|P_RW, 0xFF8(%edi)
     #PDPT
     movl $0x2000, %edi
     movl $0x3000|P_RW, (%edi)
-    movl $0x2FF0, %edi
-    movl $0x3000|P_RW, (%edi)
+    movl $0x3000|P_RW, 0xFF0(%edi)
+    movl $0x3000|P_RW, 0xFF8(%edi)
+
     #PDT
     movl $0x3000, %edi
     movl $0x4000|P_RW, (%edi)
+    movl $0x5000|P_RW, 0xFF8(%edi)
 
-    #PT
+    #PT (kernel)
     movl $0x4000, %edi
     movl $P_RW, %ebx
     movl $512, %ecx
 
-page_table_loop:
-    movl %ebx, (%edi)
-    addl $0x1000, %ebx
-    addl $8, %edi
-    decl %ecx
-    jnz page_table_loop
+    call fill_page_table
+
+    #PT (stack)
+    movl $0x5FE0, %edi
+    movl $stack_bottom+P_RW, %ebx
+    movl $4, %ecx
+    call fill_page_table
     
     #Enable PAE
     movl %cr4, %eax
@@ -168,18 +172,31 @@ print_error_loop:
     jnz print_error_loop
     ret
 
+fill_page_table:
+page_table_loop:
+    movl %ebx, (%edi)
+    addl $0x1000, %ebx
+    addl $8, %edi
+    decl %ecx
+    jnz page_table_loop
+    ret
+
+
 .code64
 .global enter64
 enter64:
-    # Fix rsp address for virtual memory
-    addq $KERNEL_VMA, %rsp
-
     # Restore multiboot information structure address
     popq %rdi
     addq $KERNEL_VMA, %rdi
 
+    xorq %rsp, %rsp
+
     movabsq $kernel_main, %rax
     jmp *%rax
+
+enter64_fail:
+    hlt
+    jmp enter64_fail
 
 .size _start, . - _start
 
