@@ -52,8 +52,8 @@ sorry64bitonly_end:
 _start:
     movl $stack_top, %esp
     #Save multiboot information structure address (with upper bits zeroed)
-    pushl %ebx
     pushl $0
+    pushl %ebx
 
     #Check for the existence of CPUID
     pushfl

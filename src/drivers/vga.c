@@ -147,6 +147,9 @@ static inline void vga_write_char(struct text_vga_data* data, char c)
     case '\r':
         data->x = 0;
         break;
+    case '\t':
+        data->x = (data->x + 4) & (~(uint32_t)3);
+        break;
     default:
         if(data->x == VGA_WIDTH) vga_newline(data);
         data->buffer[data->y * VGA_WIDTH + data->x] = vga_char(c, data->color);

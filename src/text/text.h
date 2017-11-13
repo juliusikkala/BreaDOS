@@ -72,7 +72,7 @@ int sprintf(char* s, const char* format, ...);
 int vsprintf(char* s, const char* format, va_list arg);
 
 /* Converts a string to unsigned */
-unsigned long strtoul(const char* str, char** endptr, int base);
+uint64_t strtoul(const char* str, char** endptr, int base);
 
 /* Converts an unsigned to a string*/
 char* ultostr(unsigned long u, char* str, int base);

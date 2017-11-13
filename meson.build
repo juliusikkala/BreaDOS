@@ -2,7 +2,7 @@ project(
   'BreaDOS',
   'c',
   default_options: [
-    'buildtype=release',
+    'buildtype=debug',
     'c_std=gnu99'
   ]
 )

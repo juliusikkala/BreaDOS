@@ -18,12 +18,7 @@ struct text_device* get_default_text_device()
 static int num_len(uint64_t u, int base)
 {
     size_t len = 1;
-    uint64_t cmp = base;
-    while(u >= cmp)
-    {
-        len++;
-        cmp *= base;
-    }
+    while((u /= base)) len++;
     return len;
 }
 
@@ -54,7 +49,10 @@ static int padding(
 
     if(!left_justify)
     {
-        ssize_t content_len = strnlen(content, content_max_len) + strlen(postfix);
+        ssize_t content_len =
+            strnlen(content, content_max_len)
+            + (!pad_after_prefix ? strlen(prefix) : 0)
+            + strlen(postfix);
         if(pad_width > content_len)
         {
             pad_width -= content_len;
@@ -143,9 +141,15 @@ static int generic_putu(
             *prefix_tmp++ = '0';
             *prefix_tmp++ = lowercase ? 'x' : 'X';
         }
+        else if(base == 2)
+        {
+            *prefix_tmp++ = '0';
+            *prefix_tmp++ = 'b';
+        }
     }
 
     ultostr(u, content, base);
+    if(lowercase) tolower(content);
 
     return padding(
         userdata,
@@ -172,7 +176,7 @@ static int generic_puts(
     return padding(
         userdata,
         output_char,
-        s,
+        s ? s : "(null)",
         max_chars,
         NULL, NULL,
         ' ', false, left_justify, pad_width
@@ -222,7 +226,7 @@ static int generic_printf(
         bool force_decimal_point_or_prefix = false; /* # */
         bool zero_pad = false; /* 0 */
         size_t pad_width = 0;
-        size_t precision = 0;
+        ssize_t precision = -1;
         size_t length_mask = 0xFFFFFFFF;
         bool finished = false;
 
@@ -278,7 +282,7 @@ static int generic_printf(
                 }
                 else
                 {
-                    precision = strtoul(format + 1, (char**)&endptr, 10);
+                    precision = strtoul(format, (char**)&endptr, 10);
                 }
                 break;
             case 'h':
@@ -301,7 +305,8 @@ static int generic_printf(
                 written_chars += generic_puts(
                     userdata,
                     output_char,
-                    va_arg(arg, const char*), precision,
+                    va_arg(arg, const char*),
+                    precision >= 0 ? (size_t)precision : ULONG_MAX,
                     left_justify, pad_width
                 );
                 finished = true;
@@ -323,6 +328,7 @@ static int generic_printf(
             case 'o':
             case 'x':
             case 'X':
+            case 'b':
                 d = va_arg(arg, int64_t) & length_mask;
                 written_chars += generic_putu(
                     userdata,
@@ -330,7 +336,9 @@ static int generic_printf(
                     /* Number to print; must be unsigned */
                     (d < 0 && (c == 'd' || c == 'c') ? -d : d),
                     /* Base*/
-                    (c == 'o' ? 8 : (c == 'x' || c == 'X'? 16 : 10)), 
+                    (c == 'o' ? 8 :
+                        (c == 'x' || c == 'X' ? 16 :
+                            (c == 'b' ? 2 : 10))), 
                     /* Lowercase*/
                     c == 'x',
                     /* Sign */
@@ -426,13 +434,12 @@ int vsprintf(char* s, const char* format, va_list arg)
     return len + 1;
 }
 
-unsigned long strtoul(const char* str, char** endptr, int base)
+uint64_t strtoul(const char* str, char** endptr, int base)
 {
     if(base > 36 || base < 2) return 0;
     unsigned long val = 0;
 
-    char c = 0;
-    while((c = *str++))
+    for(char c = 0; (c = *str); str++)
     {
         // lowercase to uppercase
         if(c > 96) c-=32;
@@ -451,7 +458,9 @@ unsigned long strtoul(const char* str, char** endptr, int base)
 static char* ultostr_recursive(unsigned long u, char* str, int base)
 {
     static const char* num_table = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    *ultostr_recursive(u / base, str, base) = num_table[u % base];
+    if(u == 0) return str;
+    str = ultostr_recursive(u / base, str, base);
+    *str = num_table[u % base];
     return str + 1;
 }
 
@@ -498,15 +507,15 @@ size_t strlen(const char* str)
     if(str == NULL) return 0;
     const char* start = str;
     while(*str++);
-    return str - start;
+    return str - start - 1;
 }
 
 size_t strnlen(const char* str, size_t max_len)
 {
     if(str == NULL) return 0;
     const char* start = str;
-    while(max_len-- && *str++);
-    return str - start;
+    while(*str++ && max_len--);
+    return str - start - 1;
 }
 
 char* strncpy(char* dst, const char* str, size_t num)
