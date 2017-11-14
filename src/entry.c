@@ -93,5 +93,7 @@ void kernel_main(struct multiboot_info* info)
 
     dump_mmap(info);
 
+    rye();
+
     asm volatile("cli\n1: hlt\njmp 1b");
 }
